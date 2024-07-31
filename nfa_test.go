@@ -30,14 +30,28 @@ func TestNFAMatcher(t *testing.T) {
 		{"Complex regex 1 non-match", "a(b|c)*d", "abcbcde", false},
 		{"Complex regex 2", "(a|b)c?d+", "acddd", true},
 		{"Complex regex 2 non-match", "(a|b)c?d+", "ac", false},
+		{"Complex regex 3", "(00)*|(000)*", "00", true},
+		{"Complex regex 3", "(00)*|(000)*", "000", true},
+		{"Complex regex 3 non-match", "(00)*|(000)*", "00000", false},
+		{"Complex regex 3 non-match", "(00)*|(000)*", "0000000", false},
 		{"Nested groups", "(a(b|c))+d", "abacd", true},
 		{"Nested groups non-match", "(a(b|c))+d", "ababc", false},
+		{"Nested alternation", "(a|b|c)(d|e|f)(g|h|i)", "bfh", true},
+		{"Nested alternation non-match", "(a|b|c)(d|e|f)(g|h|i)", "bfj", false},
+		{"Nested repetition", "(a+b*c?)+d", "aabcabd", true},
+		{"Nested repetition non-match", "(a+b*c?)+d", "aabcab", false},
+		{"Multiple group alternation", "(ab|cd)+(ef|gh)+", "abcdefghef", true},
+		{"Multiple group alternation non-match", "(ab|cd)+(ef|gh)+", "abcdefg", false},
 		{"Multiple alternations", "a|b|c|d", "c", true},
 		{"Multiple alternations non-match", "a|b|c|d", "e", false},
 		{"Combination of operators", "a+b*c?d", "aabd", true},
 		{"Combination of operators non-match", "a+b*c?d", "bcd", false},
 		{"Unicode support", "世界", "世界", true},
+		{"Unicode support", "世界(和平)?", "世界和平", true},
 		{"Unicode support non-match", "世界", "世界!", false},
+		{"Unicode support non-match", "世界(和平)?", "世界不太和平", false},
+		{"Unicode characters", "α+β+γ+", "ααβββγ", true},
+		{"Unicode characters non-match", "α+β+γ+", "ααβββδ", false},
 	}
 
 	for _, tt := range tests {
@@ -58,6 +72,7 @@ func TestNFAMatcher(t *testing.T) {
 
 func TestInvalidRegex(t *testing.T) {
 	invalidRegexes := []string{
+		"",
 		"(",
 		")",
 		"*",
@@ -69,6 +84,7 @@ func TestInvalidRegex(t *testing.T) {
 		"a**",
 		"a??",
 		"a++",
+		"()",
 	}
 
 	for _, regex := range invalidRegexes {
