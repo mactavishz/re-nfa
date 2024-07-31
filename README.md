@@ -4,6 +4,8 @@ This project implements a regular expression engine using Non-deterministic Fini
 
 The implementation is grounded in the ideas of automata theory and draws inspiration from Ken Thompson's regular expression search algorithm. This solution differs from Ken Thompson's approach of use reverse Polish Notation and a stack to generate the NFA. Instead, it employs a compact LL(1) parser to construct the NFA.
 
+It is used as a learning exercise to understand the inner workings of FSM-based regex engines and the theory behind them not as a production-ready library.
+
 ## Features
 
 - NFA-based regex matching
