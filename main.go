@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/mactavishz/re-nfa/pkg/utils"
+	// "github.com/mactavishz/re-nfa/pkg/utils"
 )
 
 func main() {
@@ -33,15 +32,18 @@ func main() {
 		input = strings.TrimSpace(string(inputBytes))
 	}
 
-	parser := utils.NewParser(regex)
-	nfa, err := parser.Parse()
-	if err != nil {
-		fmt.Printf("Error parsing regex '%s': %v\n", regex, err)
-		os.Exit(1)
-	}
+	fmt.Printf("regex: %s\n", regex)
+	fmt.Printf("input: %s\n", input)
 
-	matched := nfa.Match(input)
-	if matched {
-		fmt.Printf("%s\n", input)
-	}
+	// parser := utils.NewParser(regex)
+	// nfa, err := parser.Parse()
+	// if err != nil {
+	// 	fmt.Printf("Error parsing regex '%s': %v\n", regex, err)
+	// 	os.Exit(1)
+	// }
+	//
+	// matched := nfa.Match(input)
+	// if matched {
+	// 	fmt.Printf("%s\n", input)
+	// }
 }

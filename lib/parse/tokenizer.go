@@ -1,4 +1,4 @@
-package utils
+package parse
 
 import (
 	"fmt"
@@ -13,12 +13,10 @@ const (
 	CHAR TokenType = iota
 	STAR
 	PLUS
-	OPTIONAL
+	OPT
 	LPAREN
 	RPAREN
 	OR
-	CARET
-	DOLLAR
 	EOF
 )
 
@@ -43,8 +41,8 @@ func (t TokenType) String() string {
 		return "STAR"
 	case PLUS:
 		return "PLUS"
-	case OPTIONAL:
-		return "OPTIONAL"
+	case OPT:
+		return "OPT"
 	case LPAREN:
 		return "LPAREN"
 	case RPAREN:
@@ -94,7 +92,7 @@ func (t *Tokenizer) next() Token {
 	case '+':
 		return Token{Type: PLUS, Value: r}
 	case '?':
-		return Token{Type: OPTIONAL, Value: r}
+		return Token{Type: OPT, Value: r}
 	case '|':
 		return Token{Type: OR, Value: r}
 	default:
