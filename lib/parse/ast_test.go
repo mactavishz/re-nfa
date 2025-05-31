@@ -7,6 +7,7 @@ import (
 // TestCharacterNode tests a single character node (regex: a)
 func TestCharacterNode(t *testing.T) {
 	n := &Character{Value: 'a'}
+	// fmt.Println(n.String())
 	if n.ToRegex() != "a" {
 		t.Errorf("expected 'a', got '%s'", n.ToRegex())
 	}
@@ -29,6 +30,7 @@ func TestModifierNodes(t *testing.T) {
 		{&Modifier{Child: base, Type: ModifierRange, Min: 2, Max: 5}, "a{2,5}", "Quantifier"},
 	}
 	for _, m := range mods {
+		// fmt.Println(m.mod.String())
 		if m.mod.ToRegex() != m.expS {
 			t.Errorf("expected '%s', got '%s'", m.expS, m.mod.ToRegex())
 		}
@@ -44,6 +46,7 @@ func TestConcatenationNode(t *testing.T) {
 		Left:  &Character{Value: 'a'},
 		Right: &Character{Value: 'b'},
 	}
+	// fmt.Println(n.String())
 	if n.ToRegex() != "ab" {
 		t.Errorf("expected 'ab', got '%s'", n.ToRegex())
 	}
@@ -58,6 +61,7 @@ func TestAlternationNode(t *testing.T) {
 		Left:  &Character{Value: 'a'},
 		Right: &Character{Value: 'b'},
 	}
+	// fmt.Println(n.String())
 	// Alternation has no String() method, so we check structure
 	if n.Left.ToRegex() != "a" || n.Right.ToRegex() != "b" {
 		t.Errorf("expected left 'a' and right 'b', got '%s' and '%s'", n.Left.ToRegex(), n.Right.ToRegex())
@@ -77,7 +81,7 @@ func TestLongAlternationNode(t *testing.T) {
 		},
 		Right: &Character{Value: 'd'},
 	}
-
+	// fmt.Println(n.String())
 	// Check the structure recursively
 	alt1, ok := n.Left.(*Alternation)
 	if !ok {
@@ -117,6 +121,7 @@ func TestGroupNode(t *testing.T) {
 		Left:  &Character{Value: 'a'},
 		Right: &Character{Value: 'b'},
 	}
+	// fmt.Println(cat.String())
 	g := &Group{Expr: cat}
 	if g.ToRegex() != "(ab)" {
 		t.Errorf("expected '(ab)', got '%s'", g.ToRegex())
@@ -130,6 +135,7 @@ func TestGroupNode(t *testing.T) {
 func TestExpressionNode(t *testing.T) {
 	c := &Character{Value: 'a'}
 	e := &Expression{Child: c}
+	// fmt.Println(e.String())
 	if e.ToRegex() != "a" {
 		t.Errorf("expected 'a', got '%s'", e.ToRegex())
 	}
@@ -142,6 +148,7 @@ func TestExpressionNode(t *testing.T) {
 func TestTermNode(t *testing.T) {
 	c := &Character{Value: 'a'}
 	term := &Term{Child: c, HasModifier: false}
+	// fmt.Println(term.String())
 	if term.ToRegex() != "a" {
 		t.Errorf("expected 'a', got '%s'", term.ToRegex())
 	}
@@ -150,6 +157,7 @@ func TestTermNode(t *testing.T) {
 	}
 	m := &Modifier{Child: c, Type: ModifierStar}
 	tm := &Term{Child: m, HasModifier: true}
+	// fmt.Println(tm.String())
 	if tm.ToRegex() != "a*" {
 		t.Errorf("expected 'a*', got '%s'", tm.ToRegex())
 	}
@@ -172,6 +180,7 @@ func TestNestedGroupsAndModifiers(t *testing.T) {
 	} // (a|b)*c+
 	group2 := &Group{Expr: cat}                              // ((a|b)*c+)
 	mod2 := &Modifier{Child: group2, Type: ModifierQuestion} // ((a|b)*c+)?
+	// fmt.Println(mod2.String())
 	if mod2.ToRegex() != "((a|b)*c+)?" {
 		t.Errorf("expected '((a|b)*c+)?', got '%s'", mod2.ToRegex())
 	}
@@ -185,9 +194,10 @@ func TestEdgeCases(t *testing.T) {
 	if emptyGroup.ToRegex() != "(\u0000\u0000)" {
 		t.Errorf("expected '(\u0000\u0000)', got '%s'", emptyGroup.ToRegex())
 	}
-
+	// fmt.Println(emptyGroup.String())
 	// Deeply nested: (((a)))
 	deep := &Group{Expr: &Group{Expr: &Group{Expr: &Character{Value: 'a'}}}}
+	// fmt.Println(deep.String())
 	if deep.ToRegex() != "(((a)))" {
 		t.Errorf("expected '(((a)))', got '%s'", deep.ToRegex())
 	}
