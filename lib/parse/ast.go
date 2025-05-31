@@ -13,7 +13,7 @@ const (
 )
 
 type ASTNode interface {
-	String() string
+	ToRegex() string
 	NodeType() string
 }
 
@@ -25,7 +25,7 @@ type Modifier struct {
 	Max   int // -1 for unlimited
 }
 
-func (q *Modifier) String() string {
+func (q *Modifier) ToRegex() string {
 	var str string
 	switch q.Type {
 	case ModifierStar:
@@ -39,7 +39,7 @@ func (q *Modifier) String() string {
 	default:
 		panic("invalid quantifiler")
 	}
-	return fmt.Sprintf("%s%s", q.Child.String(), str)
+	return fmt.Sprintf("%s%s", q.Child.ToRegex(), str)
 }
 
 func (q *Modifier) NodeType() string {
@@ -51,8 +51,8 @@ type Expression struct {
 	Child ASTNode
 }
 
-func (e *Expression) String() string {
-	return e.Child.String()
+func (e *Expression) ToRegex() string {
+	return e.Child.ToRegex()
 }
 
 func (e *Expression) NodeType() string {
@@ -64,8 +64,8 @@ type Term struct {
 	HasModifier bool
 }
 
-func (t *Term) String() string {
-	return t.Child.String()
+func (t *Term) ToRegex() string {
+	return t.Child.ToRegex()
 }
 
 func (t *Term) NodeType() string {
@@ -88,8 +88,8 @@ type Concatenation struct {
 	Right ASTNode
 }
 
-func (cat *Concatenation) String() string {
-	return fmt.Sprintf("%s%s", cat.Left.String(), cat.Right.String())
+func (cat *Concatenation) ToRegex() string {
+	return fmt.Sprintf("%s%s", cat.Left.ToRegex(), cat.Right.ToRegex())
 }
 
 func (cat *Concatenation) NodeType() string {
@@ -101,7 +101,7 @@ type Character struct {
 	Value rune
 }
 
-func (c *Character) String() string {
+func (c *Character) ToRegex() string {
 	return fmt.Sprintf("%c", c.Value)
 }
 
@@ -114,16 +114,16 @@ type Group struct {
 	Expr ASTNode
 }
 
-func (g *Group) String() string {
-	return fmt.Sprintf("(%s)", g.Expr.String())
+func (g *Group) ToRegex() string {
+	return fmt.Sprintf("(%s)", g.Expr.ToRegex())
 }
 
 func (g *Group) NodeType() string {
 	return "Group"
 }
 
-func (a *Alternation) String() string {
-	return fmt.Sprintf("%s|%s", a.Left.String(), a.Right.String())
+func (a *Alternation) ToRegex() string {
+	return fmt.Sprintf("%s|%s", a.Left.ToRegex(), a.Right.ToRegex())
 }
 
 func (a *Alternation) NodeType() string {
