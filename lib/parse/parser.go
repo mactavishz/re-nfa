@@ -7,14 +7,13 @@ import (
 /*
 *
 * Grammar for the regular expression (in EBNF):
-*	expr ::= seq_expr alt_tail | seq_expr
-*   alt_tail ::= '|' seq_expr alt_tail | '|' seq_expr
-*   seq_expr ::= term seq_expr | term
-*	term ::= item modifier | item
-*	modifier ::= '*' | '+' | '?'
-*	item ::= char | group
-*	group ::= '(' expr ')'
-*	char -> UTF8 character, excluding '|', '*', '+', '?', '(', ')'
+*	expr := term ['|' term]*
+*   term := mterm*
+*   mterm := item [modifier]
+*	modifier := '*' | '+' | '?'
+*	item := char | group
+*	group := '(' expr ')'
+*	char -> 'a'| 'b' | 'c' | ..., UTF8 character excluding '|', '*', '+', '?', '(', ')'
 *
  */
 
