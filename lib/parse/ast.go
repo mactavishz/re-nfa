@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +15,21 @@ const (
 	ModifierQuestion                     // ? (0 or 1)
 	ModifierRange                        // {n,m} for future use
 )
+
+func (m ModifierType) String() string {
+	switch m {
+	case ModifierStar:
+		return "*"
+	case ModifierPlus:
+		return "+"
+	case ModifierQuestion:
+		return "?"
+	case ModifierRange:
+		return "{m,n}"
+	default:
+		panic("invalid ModifierType")
+	}
+}
 
 type ASTNode interface {
 	ToRegex() string
@@ -51,7 +67,16 @@ func (q *Modifier) NodeType() string {
 }
 
 func (q *Modifier) String() string {
-	return fmt.Sprintf("Modifier {\n  Child: %s,\n  Type: %d\n}", indentString(q.Child.String(), 2), q.Type)
+	if q.Type == ModifierRange {
+		return fmt.Sprintf("Modifier {\n  Child: %s,\n  Type: %s\n}", indentString(q.Child.String(), 2), strings.Replace(
+			strings.Replace(q.Type.String(), "m", strconv.Itoa(q.Min), 1),
+			"n",
+			strconv.Itoa(q.Max),
+			1),
+		)
+	} else {
+		return fmt.Sprintf("Modifier {\n  Child: %s,\n  Type: %s\n}", indentString(q.Child.String(), 2), q.Type.String())
+	}
 }
 
 // Top-level AstNode
