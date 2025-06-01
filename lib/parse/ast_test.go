@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-// TestCharacterNode tests a single character node (regex: a)
-func TestCharacterNode(t *testing.T) {
+// TestASTCharacterNode tests a single character node (regex: a)
+func TestASTCharacterNode(t *testing.T) {
 	n := &Character{Value: 'a'}
 	// fmt.Println(n.String())
 	if n.ToRegex() != "a" {
@@ -16,8 +16,8 @@ func TestCharacterNode(t *testing.T) {
 	}
 }
 
-// TestModifierNodes tests all modifier types (regex: a*, a+, a?, a{2,5})
-func TestModifierNodes(t *testing.T) {
+// TestASTModifierNodes tests all modifier types (regex: a*, a+, a?, a{2,5})
+func TestASTModifierNodes(t *testing.T) {
 	base := &Character{Value: 'a'}
 	mods := []struct {
 		mod   *Modifier
@@ -40,8 +40,8 @@ func TestModifierNodes(t *testing.T) {
 	}
 }
 
-// TestConcatenationNode tests concatenation (regex: ab)
-func TestConcatenationNode(t *testing.T) {
+// TestASTConcatenationNode tests concatenation (regex: ab)
+func TestASTConcatenationNode(t *testing.T) {
 	n := &Concatenation{
 		Left:  &Character{Value: 'a'},
 		Right: &Character{Value: 'b'},
@@ -55,8 +55,8 @@ func TestConcatenationNode(t *testing.T) {
 	}
 }
 
-// TestAlternationNode tests alternation (regex: a|b)
-func TestAlternationNode(t *testing.T) {
+// TestASTAlternationNode tests alternation (regex: a|b)
+func TestASTAlternationNode(t *testing.T) {
 	n := &Alternation{
 		Left:  &Character{Value: 'a'},
 		Right: &Character{Value: 'b'},
@@ -68,8 +68,8 @@ func TestAlternationNode(t *testing.T) {
 	}
 }
 
-// TestLongAlternationNode tests long alternation, alternation should be left-associative (regex: a|b|c|d)
-func TestLongAlternationNode(t *testing.T) {
+// TestASTLongAlternationNode tests long alternation, alternation should be left-associative (regex: a|b|c|d)
+func TestASTLongAlternationNode(t *testing.T) {
 	// Build AST for a|b|c|d: Alternation(Alternation(Alternation(a, b), c), d)
 	n := &Alternation{
 		Left: &Alternation{
@@ -115,8 +115,8 @@ func TestLongAlternationNode(t *testing.T) {
 	}
 }
 
-// TestGroupNode tests grouping (regex: (ab))
-func TestGroupNode(t *testing.T) {
+// TestASTGroupNode tests grouping (regex: (ab))
+func TestASTGroupNode(t *testing.T) {
 	cat := &Concatenation{
 		Left:  &Character{Value: 'a'},
 		Right: &Character{Value: 'b'},
@@ -131,8 +131,8 @@ func TestGroupNode(t *testing.T) {
 	}
 }
 
-// TestExpressionNode tests the Expression wrapper (regex: a)
-func TestExpressionNode(t *testing.T) {
+// TestASTExpressionNode tests the Expression wrapper (regex: a)
+func TestASTExpressionNode(t *testing.T) {
 	c := &Character{Value: 'a'}
 	e := &Expression{Child: c}
 	// fmt.Println(e.String())
@@ -144,8 +144,8 @@ func TestExpressionNode(t *testing.T) {
 	}
 }
 
-// TestTermNode tests Term with and without modifier (regex: a, a*)
-func TestTermNode(t *testing.T) {
+// TestASTTermNode tests Term with and without modifier (regex: a, a*)
+func TestASTTermNode(t *testing.T) {
 	c := &Character{Value: 'a'}
 	term := &Term{Child: c, HasModifier: false}
 	// fmt.Println(term.String())
@@ -166,8 +166,8 @@ func TestTermNode(t *testing.T) {
 	}
 }
 
-// TestNestedGroupsAndModifiers tests complex regex: ((a|b)*c+)?
-func TestNestedGroupsAndModifiers(t *testing.T) {
+// TestASTNestedGroupsAndModifiers tests complex regex: ((a|b)*c+)?
+func TestASTNestedGroupsAndModifiers(t *testing.T) {
 	alt := &Alternation{
 		Left:  &Character{Value: 'a'},
 		Right: &Character{Value: 'b'},
@@ -186,8 +186,8 @@ func TestNestedGroupsAndModifiers(t *testing.T) {
 	}
 }
 
-// TestEdgeCases tests empty group, deeply nested, and invalid modifier range
-func TestEdgeCases(t *testing.T) {
+// TestASTEdgeCases tests empty group, deeply nested, and invalid modifier range
+func TestASTEdgeCases(t *testing.T) {
 	// Empty group: ()
 	emptyGroup := &Group{Expr: &Concatenation{Left: &Character{Value: '\u0000'}, Right: &Character{Value: '\u0000'}}}
 	// This is a hack, as there's no explicit Empty node
