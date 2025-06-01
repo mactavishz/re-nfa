@@ -9,13 +9,16 @@ import (
 type TokenType int
 
 const (
-	_              = iota
 	CHAR TokenType = iota
 	STAR
 	PLUS
 	OPT
+	DOT
 	LPAREN
 	RPAREN
+	LBRACE
+	RBRACE
+	COMMA
 	OR
 	EOF
 )
@@ -26,11 +29,11 @@ type Token struct {
 	Value rune
 }
 
-// Tokenizer
+// Tokenizer, only caches one token in advance
 type Tokenizer struct {
 	input string
 	pos   int
-	buf   Token
+	buf   *Token
 }
 
 func (t TokenType) String() string {
@@ -43,10 +46,18 @@ func (t TokenType) String() string {
 		return "PLUS"
 	case OPT:
 		return "OPT"
+	case DOT:
+		return "DOT"
 	case LPAREN:
 		return "LPAREN"
 	case RPAREN:
 		return "RPAREN"
+	case LBRACE:
+		return "LBRACE"
+	case RBRACE:
+		return "RBRACE"
+	case COMMA:
+		return "COMMA"
 	case OR:
 		return "OR"
 	case EOF:
@@ -64,38 +75,46 @@ func NewTokenizer(input string) *Tokenizer {
 	return &Tokenizer{input: input}
 }
 
-func (t *Tokenizer) peek() Token {
-	if t.buf.Type == 0 {
+func (t *Tokenizer) peek() *Token {
+	if t.buf == nil {
 		t.buf = t.next()
 	}
 	return t.buf
 }
 
-func (t *Tokenizer) next() Token {
-	if t.buf.Type != 0 {
+func (t *Tokenizer) next() *Token {
+	if t.buf != nil {
 		res := t.buf
-		t.buf = Token{}
+		t.buf = nil
 		return res
 	}
 	if t.pos >= len(t.input) {
-		return Token{Type: EOF}
+		return &Token{Type: EOF}
 	}
 	r, size := utf8.DecodeRuneInString(t.input[t.pos:])
 	t.pos += size
 	switch r {
 	case '(':
-		return Token{Type: LPAREN, Value: r}
+		return &Token{Type: LPAREN, Value: r}
 	case ')':
-		return Token{Type: RPAREN, Value: r}
+		return &Token{Type: RPAREN, Value: r}
+	case '{':
+		return &Token{Type: LBRACE, Value: r}
+	case '}':
+		return &Token{Type: RBRACE, Value: r}
+	case '.':
+		return &Token{Type: DOT, Value: r}
+	case ',':
+		return &Token{Type: COMMA, Value: r}
 	case '*':
-		return Token{Type: STAR, Value: r}
+		return &Token{Type: STAR, Value: r}
 	case '+':
-		return Token{Type: PLUS, Value: r}
+		return &Token{Type: PLUS, Value: r}
 	case '?':
-		return Token{Type: OPT, Value: r}
+		return &Token{Type: OPT, Value: r}
 	case '|':
-		return Token{Type: OR, Value: r}
+		return &Token{Type: OR, Value: r}
 	default:
-		return Token{Type: CHAR, Value: r}
+		return &Token{Type: CHAR, Value: r}
 	}
 }
