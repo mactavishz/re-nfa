@@ -27,7 +27,7 @@ func NewParser(input string) *Parser {
 	return parser
 }
 
-func (p *Parser) match(expected TokenType) (Token, error) {
+func (p *Parser) match(expected TokenType) (*Token, error) {
 	t := p.tokenizer.next()
 	if t.Type != expected {
 		return t, fmt.Errorf("unexpected token, expected %s but got %s", expected.String(), t.String())
