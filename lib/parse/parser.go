@@ -48,6 +48,11 @@ func (p *Parser) check(expected TokenType) bool {
 func (p *Parser) Parse() ASTNode {
 	root := &Expression{}
 	root.Child = p.parseExpr()
+	// we only consume EOF at the top level
+	_, err := p.match(EOF)
+	if err != nil {
+		panic(err)
+	}
 	return root
 }
 
@@ -111,17 +116,38 @@ func (p *Parser) parseGroup() ASTNode {
 }
 
 func (p *Parser) parseItem() ASTNode {
-	if p.check(EOF) {
-		return nil
+	if p.check(CHAR) {
+		return p.parseChar()
+	} else if p.check(LPAREN) {
+		return p.parseGroup()
+	} else {
+		panic("expected a Character or a Group")
 	}
-	panic("TODO")
 }
 
 func (p *Parser) parseMTerm() ASTNode {
-	if p.check(EOF) {
-		return nil
+	item := p.parseItem()
+	var t ModifierType
+	var err error
+	if p.check(STAR) {
+		_, err = p.match(STAR)
+		t = ModifierStar
+	} else if p.check(PLUS) {
+		_, err = p.match(PLUS)
+		t = ModifierPlus
+	} else if p.check(OPT) {
+		_, err = p.match(OPT)
+		t = ModifierQuestion
+	} else {
+		panic("expected a '*', '+' or '?'")
 	}
-	panic("TODO")
+	if err != nil {
+		panic(err)
+	}
+	return &Modifier{
+		Child: item,
+		Type:  t,
+	}
 }
 
 func (p *Parser) parseChar() ASTNode {
