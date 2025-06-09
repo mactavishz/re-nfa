@@ -13,7 +13,7 @@ import (
 *	modifier := '*' | '+' | '?'
 *	item := char | group
 *	group := '(' expr ')'
-*	char -> 'a'| 'b' | 'c' | ..., UTF8 character excluding '|', '*', '+', '?', '(', ')'
+*	char -> 'a'| 'b' | 'c' | ..., UTF8 character excluding '.', '|', '*', '+', '?', '(', ')'
 *
  */
 
@@ -51,22 +51,83 @@ func (p *Parser) Parse() ASTNode {
 	return root
 }
 
+func (p *Parser) parseTerm() ASTNode {
+	panic("TODO")
+}
+
 func (p *Parser) parseExpr() ASTNode {
-	panic("TODO!")
+	lTerm := p.parseTerm()
+	if lTerm == nil {
+		return nil
+	}
+	// an expression is finished only when the next token is EOF or ')'
+	// (it is wrapped in a pair of parentheses)
+	if p.check(EOF) || p.check(RPAREN) {
+		return lTerm
+	}
+	var result ASTNode
+	for {
+		_, err := p.match(OR)
+		if err != nil {
+			panic(err)
+		}
+		rTerm := p.parseTerm()
+		if rTerm == nil {
+			panic("expected a term after |")
+		}
+		if result == nil {
+			result = &Alternation{
+				Left:  lTerm,
+				Right: rTerm,
+			}
+		} else {
+			result = &Alternation{
+				Left:  result,
+				Right: rTerm,
+			}
+		}
+		if !p.check(OR) {
+			return result
+		}
+	}
 }
 
 func (p *Parser) parseGroup() ASTNode {
-	panic("TODO!")
+	_, err := p.match(LPAREN)
+	if err != nil {
+		panic(err)
+	}
+	expr := p.parseExpr()
+	if expr == nil {
+		return nil
+	}
+	_, err = p.match(LPAREN)
+	if err != nil {
+		panic(err)
+	}
+	return &Group{
+		Expr: expr,
+	}
+}
+
+func (p *Parser) parseItem() ASTNode {
+	if p.check(EOF) {
+		return nil
+	}
+	panic("TODO")
 }
 
 func (p *Parser) parseMTerm() ASTNode {
-	panic("TODO!")
+	if p.check(EOF) {
+		return nil
+	}
+	panic("TODO")
 }
 
 func (p *Parser) parseChar() ASTNode {
 	token, err := p.match(CHAR)
 	if err != nil {
-		panic(fmt.Sprintf("expect a char, but get %#U", token.Value))
+		panic(err)
 	}
 	return &Character{
 		Value: token.Value,
