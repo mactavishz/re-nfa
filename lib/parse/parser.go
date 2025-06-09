@@ -46,5 +46,29 @@ func (p *Parser) check(expected TokenType) bool {
 }
 
 func (p *Parser) Parse() ASTNode {
-	panic("TODO")
+	root := &Expression{}
+	root.Child = p.parseExpr()
+	return root
+}
+
+func (p *Parser) parseExpr() ASTNode {
+	panic("TODO!")
+}
+
+func (p *Parser) parseGroup() ASTNode {
+	panic("TODO!")
+}
+
+func (p *Parser) parseMTerm() ASTNode {
+	panic("TODO!")
+}
+
+func (p *Parser) parseChar() ASTNode {
+	token, err := p.match(CHAR)
+	if err != nil {
+		panic(fmt.Sprintf("expect a char, but get %#U", token.Value))
+	}
+	return &Character{
+		Value: token.Value,
+	}
 }
