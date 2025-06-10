@@ -57,10 +57,38 @@ func (p *Parser) Parse() ASTNode {
 }
 
 func (p *Parser) parseTerm() ASTNode {
-	panic("TODO")
+	if p.check(EOF) || p.check(OR) {
+		return nil
+	}
+	lMTerm := p.parseMTerm()
+	var result ASTNode
+
+	for !p.check(EOF) && !p.check(OR) && !p.check(RPAREN) {
+		// this must be correct
+		rMTerm := p.parseMTerm()
+		if result == nil {
+			result = &Concatenation{
+				Left:  lMTerm,
+				Right: rMTerm,
+			}
+		} else {
+			result = &Concatenation{
+				Left:  result,
+				Right: rMTerm,
+			}
+		}
+	}
+	if result == nil {
+		return lMTerm
+	} else {
+		return result
+	}
 }
 
 func (p *Parser) parseExpr() ASTNode {
+	if p.check(EOF) || p.check(RPAREN) {
+		return nil
+	}
 	lTerm := p.parseTerm()
 	if lTerm == nil {
 		return nil
@@ -103,10 +131,7 @@ func (p *Parser) parseGroup() ASTNode {
 		panic(err)
 	}
 	expr := p.parseExpr()
-	if expr == nil {
-		return nil
-	}
-	_, err = p.match(LPAREN)
+	_, err = p.match(RPAREN)
 	if err != nil {
 		panic(err)
 	}
@@ -138,6 +163,9 @@ func (p *Parser) parseMTerm() ASTNode {
 	} else if p.check(OPT) {
 		_, err = p.match(OPT)
 		t = ModifierQuestion
+	} else if p.check(CHAR) || p.check(LPAREN) || p.check(RPAREN) || p.check(OR) || p.check(EOF) {
+		// if this is not a modified term
+		return item
 	} else {
 		panic("expected a '*', '+' or '?'")
 	}
