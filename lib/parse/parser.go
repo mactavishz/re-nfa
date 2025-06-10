@@ -61,45 +61,25 @@ func (p *Parser) parseTerm() ASTNode {
 		return nil
 	}
 	lMTerm := p.parseMTerm()
-	var result ASTNode
 
 	for !p.check(EOF) && !p.check(OR) && !p.check(RPAREN) {
 		// this must be correct
 		rMTerm := p.parseMTerm()
-		if result == nil {
-			result = &Concatenation{
-				Left:  lMTerm,
-				Right: rMTerm,
-			}
-		} else {
-			result = &Concatenation{
-				Left:  result,
-				Right: rMTerm,
-			}
+		lMTerm = &Concatenation{
+			Left:  lMTerm,
+			Right: rMTerm,
 		}
 	}
-	if result == nil {
-		return lMTerm
-	} else {
-		return result
-	}
+	return lMTerm
 }
 
 func (p *Parser) parseExpr() ASTNode {
+	// handle empty expression, when the next token is EOF or ')' (it is wrapped in a pair of parentheses)
 	if p.check(EOF) || p.check(RPAREN) {
 		return nil
 	}
 	lTerm := p.parseTerm()
-	if lTerm == nil {
-		return nil
-	}
-	// an expression is finished only when the next token is EOF or ')'
-	// (it is wrapped in a pair of parentheses)
-	if p.check(EOF) || p.check(RPAREN) {
-		return lTerm
-	}
-	var result ASTNode
-	for {
+	for p.check(OR) {
 		_, err := p.match(OR)
 		if err != nil {
 			panic(err)
@@ -108,21 +88,12 @@ func (p *Parser) parseExpr() ASTNode {
 		if rTerm == nil {
 			panic("expected a term after |")
 		}
-		if result == nil {
-			result = &Alternation{
-				Left:  lTerm,
-				Right: rTerm,
-			}
-		} else {
-			result = &Alternation{
-				Left:  result,
-				Right: rTerm,
-			}
-		}
-		if !p.check(OR) {
-			return result
+		lTerm = &Alternation{
+			Left:  lTerm,
+			Right: rTerm,
 		}
 	}
+	return lTerm
 }
 
 func (p *Parser) parseGroup() ASTNode {
