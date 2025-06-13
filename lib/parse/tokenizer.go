@@ -25,8 +25,9 @@ const (
 
 // Token structure
 type Token struct {
-	Type  TokenType
-	Value rune
+	Type   TokenType
+	Column int
+	Value  rune
 }
 
 // Tokenizer, only caches one token in advance
@@ -77,44 +78,45 @@ func NewTokenizer(input string) *Tokenizer {
 
 func (t *Tokenizer) peek() *Token {
 	if t.buf == nil {
-		t.buf = t.next()
+		t.buf = t.consume()
 	}
 	return t.buf
 }
 
-func (t *Tokenizer) next() *Token {
+func (t *Tokenizer) consume() *Token {
 	if t.buf != nil {
 		res := t.buf
 		t.buf = nil
 		return res
 	}
 	if t.pos >= len(t.input) {
-		return &Token{Type: EOF}
+		return &Token{Type: EOF, Column: len(t.input) - 1}
 	}
 	r, size := utf8.DecodeRuneInString(t.input[t.pos:])
+	oldPos := t.pos
 	t.pos += size
 	switch r {
 	case '(':
-		return &Token{Type: LPAREN, Value: r}
+		return &Token{Type: LPAREN, Value: r, Column: oldPos}
 	case ')':
-		return &Token{Type: RPAREN, Value: r}
+		return &Token{Type: RPAREN, Value: r, Column: oldPos}
 	case '{':
-		return &Token{Type: LBRACE, Value: r}
+		return &Token{Type: LBRACE, Value: r, Column: oldPos}
 	case '}':
-		return &Token{Type: RBRACE, Value: r}
+		return &Token{Type: RBRACE, Value: r, Column: oldPos}
 	case '.':
-		return &Token{Type: DOT, Value: r}
+		return &Token{Type: DOT, Value: r, Column: oldPos}
 	case ',':
-		return &Token{Type: COMMA, Value: r}
+		return &Token{Type: COMMA, Value: r, Column: oldPos}
 	case '*':
-		return &Token{Type: STAR, Value: r}
+		return &Token{Type: STAR, Value: r, Column: oldPos}
 	case '+':
-		return &Token{Type: PLUS, Value: r}
+		return &Token{Type: PLUS, Value: r, Column: oldPos}
 	case '?':
-		return &Token{Type: OPT, Value: r}
+		return &Token{Type: OPT, Value: r, Column: oldPos}
 	case '|':
-		return &Token{Type: OR, Value: r}
+		return &Token{Type: OR, Value: r, Column: oldPos}
 	default:
-		return &Token{Type: CHAR, Value: r}
+		return &Token{Type: CHAR, Value: r, Column: oldPos}
 	}
 }
