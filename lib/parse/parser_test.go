@@ -33,16 +33,19 @@ func TestParserBasic(t *testing.T) {
 		name     string
 		input    string
 		expected ASTNode
+		wantErr  bool
 	}{
 		{
 			"empty",
 			"",
 			&Expression{Child: nil},
+			false,
 		},
 		{
 			"single char",
 			"a",
 			&Expression{Child: &Character{Value: 'a'}},
+			false,
 		},
 		{
 			"simple alternation",
@@ -53,6 +56,7 @@ func TestParserBasic(t *testing.T) {
 					Right: &Character{Value: 'b'},
 				},
 			},
+			false,
 		},
 		{
 			"simple concatenation",
@@ -63,6 +67,7 @@ func TestParserBasic(t *testing.T) {
 					Right: &Character{Value: 'b'},
 				},
 			},
+			false,
 		},
 		{
 			"simple group",
@@ -72,6 +77,7 @@ func TestParserBasic(t *testing.T) {
 					Expr: &Character{Value: 'a'},
 				},
 			},
+			false,
 		},
 		{
 			"simple modifier",
@@ -82,6 +88,7 @@ func TestParserBasic(t *testing.T) {
 					Type:  ModifierStar,
 				},
 			},
+			false,
 		},
 		{
 			"simple plus",
@@ -92,6 +99,7 @@ func TestParserBasic(t *testing.T) {
 					Type:  ModifierPlus,
 				},
 			},
+			false,
 		},
 		{
 			"simple optional",
@@ -102,13 +110,18 @@ func TestParserBasic(t *testing.T) {
 					Type:  ModifierQuestion,
 				},
 			},
+			false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parser := NewParser(tt.input)
-			ast := parser.Parse()
+			ast, err := parser.Parse()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if !reflect.DeepEqual(ast, tt.expected) {
 				t.Errorf("expected %s, got %s", astToString(tt.expected), astToString(ast))
 			}
@@ -121,6 +134,7 @@ func TestParserComplex(t *testing.T) {
 		name     string
 		input    string
 		expected ASTNode
+		wantErr  bool
 	}{
 		{
 			"complex alternation",
@@ -137,6 +151,7 @@ func TestParserComplex(t *testing.T) {
 					Right: &Character{Value: 'd'},
 				},
 			},
+			false,
 		},
 		{
 			"complex concatenation",
@@ -153,6 +168,7 @@ func TestParserComplex(t *testing.T) {
 					Right: &Character{Value: 'd'},
 				},
 			},
+			false,
 		},
 		{
 			"nested groups",
@@ -170,6 +186,7 @@ func TestParserComplex(t *testing.T) {
 					},
 				},
 			},
+			false,
 		},
 		{
 			"complex modifiers",
@@ -192,6 +209,7 @@ func TestParserComplex(t *testing.T) {
 					},
 				},
 			},
+			false,
 		},
 		{
 			"mixed operations",
@@ -213,13 +231,18 @@ func TestParserComplex(t *testing.T) {
 					},
 				},
 			},
+			false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parser := NewParser(tt.input)
-			ast := parser.Parse()
+			ast, err := parser.Parse()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if !reflect.DeepEqual(ast, tt.expected) {
 				t.Errorf("expected %s, got %s", astToString(tt.expected), astToString(ast))
 			}
@@ -232,6 +255,7 @@ func TestParserEdgeCases(t *testing.T) {
 		name     string
 		input    string
 		expected ASTNode
+		wantErr  bool
 	}{
 		{
 			"empty group",
@@ -239,6 +263,20 @@ func TestParserEdgeCases(t *testing.T) {
 			&Expression{
 				Child: &Group{Expr: nil},
 			},
+			false,
+		},
+		{
+			"term after empty group",
+			"()|a",
+			&Expression{
+				Child: &Alternation{
+					Left: &Group{Expr: nil},
+					Right: &Character{
+						Value: 'a',
+					},
+				},
+			},
+			false,
 		},
 		{
 			"nested empty groups",
@@ -251,6 +289,7 @@ func TestParserEdgeCases(t *testing.T) {
 					},
 				},
 			},
+			false,
 		},
 		{
 			"complex empty groups",
@@ -263,6 +302,7 @@ func TestParserEdgeCases(t *testing.T) {
 					},
 				},
 			},
+			false,
 		},
 		{
 			"nested modifiers",
@@ -278,13 +318,18 @@ func TestParserEdgeCases(t *testing.T) {
 					Type: ModifierStar,
 				},
 			},
+			false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			parser := NewParser(tt.input)
-			ast := parser.Parse()
+			ast, err := parser.Parse()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if !reflect.DeepEqual(ast, tt.expected) {
 				t.Errorf("expected %s, got %s", astToString(tt.expected), astToString(ast))
 			}
@@ -298,31 +343,28 @@ func TestParserErrorCases(t *testing.T) {
 		input       string
 		expectError bool
 	}{
+		{"empty left term", "|a", true},
 		{"unmatched left paren", "(", true},
 		{"unmatched right paren", ")", true},
 		{"invalid char after |", "a|", true},
+		{"missing char between a||b", "a||b", true},
 		{"invalid char after modifier", "a*|", true},
 		{"invalid use of modifier", "a**", true},
 		{"invalid char in group", "(a|)", true},
 		{"invalid char after group", "(a)|", true},
 		{"invalid char after nested group", "((a))|", true},
 		{"invalid char after complex group", "((a|b)*)|", true},
+		{"invalid char after empty group", "()|", true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r != nil {
-					if !tt.expectError {
-						t.Errorf("unexpected panic: %v", r)
-					}
-				} else if tt.expectError {
-					t.Error("expected panic but got none")
-				}
-			}()
-
 			parser := NewParser(tt.input)
-			parser.Parse()
+			_, err := parser.Parse()
+			fmt.Println(err)
+			if (err != nil) != tt.expectError {
+				t.Errorf("Parse() error = %v, expectError %v", err, tt.expectError)
+			}
 		})
 	}
 }
